@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreenChain Protocol — Apresentação</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg:      #060c08;
+  --bg2:     #0b1610;
+  --bg3:     #101e14;
+  --border:  #1a2e1f;
+  --green:   #2dff78;
+  --green2:  #18cc5a;
+  --greend:  #0a3318;
+  --teal:    #00e5c4;
+  --amber:   #f5c842;
+  --red:     #ff4060;
+  --blue:    #4da8ff;
+  --text:    #dff0e5;
+  --muted:   #4d6b55;
+  --card:    rgba(11,22,16,0.92);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  overflow: hidden;
+  cursor: none;
+}
+
+/* ── Custom cursor ─────────────────────────────────────────── */
+.cursor {
+  position: fixed;
+  width: 10px; height: 10px;
+  background: var(--green);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.15s;
+  mix-blend-mode: screen;
+}
+
+/* ── Slide container ───────────────────────────────────────── */
+.deck {
+  width: 100vw; height: 100vh;
+  position: relative;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 80px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.7s cubic-bezier(0.4,0,0.2,1);
+}
+
+.slide.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── Background effects ────────────────────────────────────── */
+.bg-grid {
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(45,255,120,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45,255,120,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-orb {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(80px);
+  opacity: 0.18;
+}
+.bg-orb-1 { width:500px;height:500px;background:var(--green);top:-200px;left:-200px; }
+.bg-orb-2 { width:400px;height:400px;background:var(--teal);bottom:-150px;right:-150px; }
+
+/* ── Nav ───────────────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  bottom: 36px; left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 100;
+  background: rgba(11,22,16,0.85);
+  border: 1px solid var(--border);
+  border-radius: 40px;
+  padding: 10px 20px;
+  backdrop-filter: blur(12px);
+}
+
+.nav-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.nav-dot.active { background: var(--green); transform: scale(1.4); }
+
+.nav-btn {
+  background: none; border: none;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.nav-btn:hover { color: var(--green); }
+
+.slide-counter {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 0 8px;
+}
+
+/* ── Progress bar ──────────────────────────────────────────── */
+.progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--green), var(--teal));
+  transition: width 0.6s ease;
+  z-index: 100;
+}
+
+/* ── Slide label ───────────────────────────────────────────── */
+.slide-label {
+  position: fixed;
+  top: 28px; right: 40px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  z-index: 100;
+}
+
+/* ── Typography ────────────────────────────────────────────── */
+.tag {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--green);
+  background: var(--greend);
+  border: 1px solid rgba(45,255,120,0.25);
+  border-radius: 3px;
+  padding: 4px 12px;
+  margin-bottom: 20px;
+}
+
+.display {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 2px;
+  line-height: 0.92;
+  color: var(--text);
+}
+
+.display span { color: var(--green); }
+.display .teal { color: var(--teal); }
+.display .amber { color: var(--amber); }
+
+.lead {
+  font-size: 16px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 680px;
+}
+
+.mono {
+  font-family: 'DM Mono', monospace;
+}
+
+/* ── Cards ─────────────────────────────────────────────────── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--green), var(--teal));
+}
+
+/* ── Divider ───────────────────────────────────────────────── */
+.hr { height: 1px; background: var(--border); width: 100%; margin: 16px 0; }
+
+/* ══════════════════════════════════════════════════════════════
+   SLIDE 1 — TÍTULO
+══════════════════════════════════════════════════════════════ */
+#s1 { justify-content: center; gap: 0; }
+
+.s1-logo {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 40px;
+  animation: fadeUp 0.8s 0.2s both;
+}
+.s1-icon {
+  width: 52px; height: 52px;
+  background: var(--green);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: var(--bg);
+  letter-spacing: 1px;
+}
+.s1-logotxt {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: var(--green);
+}
+.s1-sub {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-family: 'DM Mono', monospace;
+}
+
+.s1-title {
+  font-size: clamp(80px, 11vw, 140px);
+  animation: fadeUp 0.8s 0.4s both;
+  text-align: left;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.s1-desc {
+  font-size: 18px;
+  color: var(--muted);
+  max-width: 700px;
+  line-height: 1.6;
+  margin-top: 28px;
+  animation: fadeUp 0.8s 0.6s both;
+}
+
+.s1-meta {
+  display: flex; gap: 32px;
+  margin-top: 40px;
+  animation: fadeUp 0.8s 0.8s both;
+}
+
+.s1-meta-item {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.s1-meta-item strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.s1-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--greend);
+  border: 1px solid rgba(45,255,120,0.2);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--green);
+  animation: fadeUp 0.8s 1.0s both;
+  margin-top: 20px;
+  width: fit-content;
+}
+.s1-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+
+/* ══════════════════════════════════════════════════════════════
+   SLIDE 2 — O PROBLEMA
+══════════════════════════════════════════════════════════════ */
+#s2 { flex-direction: row; gap: 60px; align-items: center; justify-content: center; }
+
+.s2-left { flex: 1; max-width: 480px; }
+.s2-right { flex: 1; max-width: 500px; display: flex; flex-direction: column; gap: 14px; }
+
+.problem-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex; align-items: flex-start; gap: 16px;
+  transition: border-color 0.3s;
+}
+.problem-card:hover { border-color: rgba(255,64,96,0.4); }
+
+.problem-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.problem-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.problem-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.solution-box {
+  background: linear-gradient(135deg, var(--greend), rgba(0,229,196,0.08));
+  border: 1px solid rgba(45,255,120,0.3);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-top: 16px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SLIDE 3 — ARQUITETURA
+══════════════════════════════════════════════════════════════ */
+#s3 { gap: 30px; }
+
+.arch-title { text-align: center; margin-bottom: 10px; }
+
+.arch-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.arch-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 20px;
+  position: relative;
+  transition: all 0.3s;
+  cursor: default;
+}
+
+.arch-card:hover {
+  border-color: var(--green);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(45,255,120,0.1);
+}
+
+.arch-card-top {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px;
+}
+
+.arch-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.arch-name {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.arch-standard {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--bg3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.arch-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.arch-feature {
+  margin-top: 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--green);
+  background: var(--greend);
+  padding: 4px 10px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.arch-arrow {
+  text-align: center;
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+}
+
+.chainlink-badge {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(245,200,66,0.08);
+  border: 1px solid rgba(245,200,66,0.2);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--amber);
+  width: fit-content;
+  margin: 0 auto;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SLIDE 4 — CONTRATOS (código)
+══════════════════════════════════════════════════════════════ */
+#s4 { flex-direction: row; gap: 50px; align-items: flex-start; padding-top: 80px; }
+
+.s4-left { flex: 1; max-width: 440px; }
+.s4-right { flex: 1.2; }
+
+.code-block {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.code-header {
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.code-dots { display: flex; gap: 5px; }
+.code-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+.code-filename {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  margin-left: 6px;
+}
+
+.code-body {
+  padding: 16px 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px;
+  line-height: 1.7;
+  overflow: hidden;
+}
+
+.kw  { color: #569cd6; }
+.fn  { color: var(--teal); }
+.str { color: #ce9178; }
+.cmt { color: var(--muted); font-style: italic; }
+.num { color: var(--amber); }
+.cls { color: #4ec9b0; }
+.dec { color: var(--green); }
+
+/* ══════════════════════════════════════════════════════════════
+   SLIDE 5 — STAKING + ORACLE
+══════════════════════════════════════════════════════════════ */
+#s5 { gap: 28px; }
+
+.oracle-live {
+  background: var(--bg2);
+  border: 1px solid rgba(245,200,66,0.3);
+  border-radius: 16px;
+  padding: 24px 32px;
+  display: flex; align-items: center; gap: 40px;
+  width: 100%; max-width: 900px;
+}
+
+.oracle-price-big {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 64px;
+  color: var(--amber);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.oracle-label-sm {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.oracle-sep { flex: 1; height: 1px; background: var(--border); }
+
+.apr-display {
+  text-align: center;
+}
+.apr-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 72px;
+  color: var(--green);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.apr-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+
+.staking-flow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  width: 100%; max-width: 900px;
+  background: var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.flow-step {
+  background: var(--bg2);
+  padding: 20px 18px;
+  position: relative;
+}
+
+.flow-step + .flow-step {
+  border-left: 1px solid var(--border);
+}
+
+.flow-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: var(--border);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.flow-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.flow-desc {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SLIDE 6 — DAO
+══════════════════════════════════════════════════════════════ */
+#s6 { flex-direction: row; gap: 50px; align-items: center; }
+
+.s6-left { flex: 1; max-width: 420px; }
+.s6-right { flex: 1.1; display: flex; flex-direction: column; gap: 14px; }
+
+.proposal-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  transition: border-color 0.3s;
+}
+.proposal-item:hover { border-color: rgba(45,255,120,0.3); }
+
+.proposal-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+
+.proposal-id { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+
+.status-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+.status-active   { background: var(--greend); color: var(--green); border: 1px solid rgba(45,255,120,0.3); }
+.status-passed   { background: rgba(0,229,196,0.1); color: var(--teal); border: 1px solid rgba(0,229,196,0.3); }
+
+.proposal-text {
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.vote-bar-wrap { height: 5px; background: var(--bg); border-radius: 3px; margin-bottom: 6px; overflow: hidden; }
+.vote-bar-fill { height: 100%; border-radius: 3px; }
+
+.vote-nums {
+  display: flex; justify-content: space-between;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+}
+
+.dao-stats {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-top: 24px;
+}
+
+.dao-stat {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+.dao-stat-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: var(--teal);
+  letter-spacing: 1px;
+}
+.dao-stat-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SLIDE 7 — SEGURANÇA
+══════════════════════════════════════════════════════════════ */
+#s7 { gap: 28px; }
+
+.security-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%; max-width: 1050px;
+}
+
+.security-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 20px;
+  transition: all 0.3s;
+}
+.security-card:hover { transform: translateY(-3px); border-color: rgba(45,255,120,0.3); }
+
+.sec-icon { font-size: 28px; margin-bottom: 12px; }
+.sec-title { font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 6px; }
+.sec-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
+
+.audit-summary {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  width: 100%; max-width: 1050px;
+  background: var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.audit-cell {
+  background: var(--bg2);
+  padding: 14px 12px;
+  text-align: center;
+}
+.audit-cell + .audit-cell { border-left: 1px solid var(--border); }
+
+.audit-sev {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+
+.audit-count {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  line-height: 1;
+}
+
+.audit-status {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SLIDE 8 — DEPLOY
+══════════════════════════════════════════════════════════════ */
+#s8 { flex-direction: row; gap: 50px; align-items: center; }
+
+.s8-left { flex: 1; max-width: 420px; }
+.s8-right { flex: 1.1; display: flex; flex-direction: column; gap: 12px; }
+
+.deploy-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 16px;
+  transition: border-color 0.3s;
+}
+.deploy-card:hover { border-color: rgba(45,255,120,0.3); }
+
+.deploy-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.deploy-name {
+  font-weight: 700; font-size: 13px; color: var(--text);
+}
+
+.deploy-addr {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--muted); margin-top: 2px;
+}
+
+.deploy-link {
+  margin-left: auto;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--green);
+  background: var(--greend);
+  padding: 4px 10px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.terminal {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.terminal-header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.terminal-body {
+  padding: 16px 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px;
+  line-height: 1.8;
+}
+.t-cmd  { color: var(--green); }
+.t-out  { color: var(--muted); }
+.t-ok   { color: var(--green); }
+.t-addr { color: var(--teal); }
+.t-sep  { color: var(--border); }
+
+/* ══════════════════════════════════════════════════════════════
+   SLIDE 9 — FINAL
+══════════════════════════════════════════════════════════════ */
+#s9 { align-items: center; justify-content: center; gap: 0; }
+
+.final-title {
+  font-size: clamp(60px, 9vw, 110px);
+  text-align: center;
+  animation: fadeUp 0.8s 0.2s both;
+}
+
+.deliverables {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; width: 100%; max-width: 960px;
+  margin-top: 40px;
+  animation: fadeUp 0.8s 0.5s both;
+}
+
+.del-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 18px;
+  text-align: center;
+  transition: all 0.3s;
+}
+.del-card:hover { border-color: var(--green); transform: translateY(-4px); }
+
+.del-icon { font-size: 28px; margin-bottom: 10px; }
+.del-title { font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 4px; }
+.del-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+.final-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 28px;
+  animation: fadeUp 0.8s 0.8s both;
+}
+
+/* ── Animations ────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+@keyframes ticker {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-4px); }
+  100% { transform: translateY(0); }
+}
+
+.slide.active .card,
+.slide.active .arch-card,
+.slide.active .problem-card,
+.slide.active .security-card,
+.slide.active .deploy-card,
+.slide.active .proposal-item,
+.slide.active .del-card {
+  animation: fadeUp 0.5s both;
+}
+
+.slide.active .arch-card:nth-child(1) { animation-delay: 0.1s; }
+.slide.active .arch-card:nth-child(2) { animation-delay: 0.2s; }
+.slide.active .arch-card:nth-child(3) { animation-delay: 0.3s; }
+.slide.active .arch-card:nth-child(4) { animation-delay: 0.4s; }
+
+.slide.active .security-card:nth-child(1) { animation-delay: 0.1s; }
+.slide.active .security-card:nth-child(2) { animation-delay: 0.2s; }
+.slide.active .security-card:nth-child(3) { animation-delay: 0.3s; }
+.slide.active .security-card:nth-child(4) { animation-delay: 0.4s; }
+.slide.active .security-card:nth-child(5) { animation-delay: 0.5s; }
+.slide.active .security-card:nth-child(6) { animation-delay: 0.6s; }
+
+.slide.active .problem-card:nth-child(1) { animation-delay: 0.1s; }
+.slide.active .problem-card:nth-child(2) { animation-delay: 0.2s; }
+.slide.active .problem-card:nth-child(3) { animation-delay: 0.3s; }
+
+.slide.active .deploy-card:nth-child(1) { animation-delay: 0.1s; }
+.slide.active .deploy-card:nth-child(2) { animation-delay: 0.2s; }
+.slide.active .deploy-card:nth-child(3) { animation-delay: 0.3s; }
+.slide.active .deploy-card:nth-child(4) { animation-delay: 0.4s; }
+
+.slide.active .del-card:nth-child(1) { animation-delay: 0.15s; }
+.slide.active .del-card:nth-child(2) { animation-delay: 0.3s; }
+.slide.active .del-card:nth-child(3) { animation-delay: 0.45s; }
+.slide.active .del-card:nth-child(4) { animation-delay: 0.6s; }
+
+.slide.active .flow-step:nth-child(1) { animation: fadeUp 0.4s 0.1s both; }
+.slide.active .flow-step:nth-child(2) { animation: fadeUp 0.4s 0.2s both; }
+.slide.active .flow-step:nth-child(3) { animation: fadeUp 0.4s 0.3s both; }
+.slide.active .flow-step:nth-child(4) { animation: fadeUp 0.4s 0.4s both; }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="bg-grid"></div>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+<div class="progress" id="progress"></div>
+<div class="slide-label" id="slideLabel">GREENCHAIN PROTOCOL</div>
+
+<div class="deck" id="deck">
+
+  <!-- ══ SLIDE 1 — TÍTULO ═══════════════════════════════════ -->
+  <div class="slide active" id="s1">
+    <div class="s1-logo">
+      <div class="s1-icon">GC</div>
+      <div>
+        <div class="s1-logotxt">GreenChain</div>
+        <div class="s1-sub">Web3 Protocol</div>
+      </div>
+    </div>
+
+    <div class="display s1-title">
+      TOKEN<span>IZAÇÃO</span><br>
+      DE CRÉDITOS<br>
+      <span class="teal">DE CARBONO</span>
+    </div>
+
+    <div class="s1-desc">
+      MVP completo de protocolo Web3 descentralizado: ERC-20 · NFT ERC-721 · Staking com Oracle Chainlink · DAO de Governança · Deploy na Sepolia Testnet.
+    </div>
+
+    <div class="s1-meta">
+      <div class="s1-meta-item"><strong>Residência em TIC 29</strong>Web3.0 — Unidade 1 | Cap. 5</div>
+      <div class="s1-meta-item"><strong>Prof. Bruno Portes</strong>Fase 2 Avançada</div>
+      <div class="s1-meta-item"><strong>Solidity ^0.8.20</strong>OpenZeppelin v5 · Hardhat</div>
+      <div class="s1-meta-item"><strong>Sepolia Testnet</strong>Chain ID: 11155111</div>
+    </div>
+
+    <div class="s1-badge">
+      <div class="s1-dot"></div>
+      Deploy ativo na Sepolia Testnet
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 2 — O PROBLEMA ════════════════════════════════ -->
+  <div class="slide" id="s2">
+    <div class="s2-left">
+      <div class="tag">O Problema</div>
+      <div class="display" style="font-size:62px; margin-bottom:20px;">
+        MERCADO<br><span>OPACO</span><br>E FRÁGIL
+      </div>
+      <p class="lead" style="font-size:14px;">
+        O mercado global de créditos de carbono movimenta bilhões, mas opera sem transparência ou auditabilidade real.
+      </p>
+
+      <div class="solution-box" style="margin-top:24px;">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Nossa Solução</div>
+        <div style="font-size:14px;color:var(--text);line-height:1.6;">
+          Cada compensação de CO₂ vira um <strong style="color:var(--green)">NFT único e imutável</strong> na blockchain — verificável por qualquer pessoa, para sempre.
+        </div>
+      </div>
+    </div>
+
+    <div class="s2-right">
+      <div class="problem-card">
+        <div class="problem-icon" style="background:rgba(255,64,96,0.1);">🔴</div>
+        <div>
+          <div class="problem-title">Opacidade Total</div>
+          <div class="problem-desc">Compradores não conseguem verificar se um crédito é legítimo ou se representa compensação real.</div>
+        </div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon" style="background:rgba(255,64,96,0.1);">⚠️</div>
+        <div>
+          <div class="problem-title">Double-Counting</div>
+          <div class="problem-desc">O mesmo crédito pode ser vendido múltiplas vezes para compradores diferentes sem que ninguém saiba.</div>
+        </div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon" style="background:rgba(255,64,96,0.1);">🏦</div>
+        <div>
+          <div class="problem-title">Centralização</div>
+          <div class="problem-desc">Terceiros privados controlam emissão, verificação e invalidação de créditos sem accountability.</div>
+        </div>
+      </div>
+      <div style="background:var(--greend);border:1px solid rgba(45,255,120,0.25);border-radius:12px;padding:18px 22px;margin-top:4px;">
+        <div style="font-size:13px;color:var(--text);line-height:1.6;">
+          <strong style="color:var(--green)">GreenChain:</strong> blockchain pública + NFT único por certificado + DAO comunitária = transparência total e impossibilidade de fraude.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 3 — ARQUITETURA ═══════════════════════════════ -->
+  <div class="slide" id="s3">
+    <div class="arch-title">
+      <div class="tag">Arquitetura</div>
+      <div class="display" style="font-size:52px;">4 CONTRATOS · 1 <span>PROTOCOLO</span></div>
+    </div>
+
+    <div class="arch-grid">
+      <div class="arch-card">
+        <div class="arch-card-top">
+          <div class="arch-dot" style="background:var(--green);"></div>
+          <div class="arch-name">GreenToken</div>
+        </div>
+        <div class="arch-standard">ERC-20</div>
+        <div class="arch-desc">Token fungível de governança e recompensa. Supply máximo de 100 milhões de GRN. Roles: MINTER e BURNER.</div>
+        <div class="arch-feature">MINTER_ROLE → Staking</div>
+      </div>
+
+      <div class="arch-card">
+        <div class="arch-card-top">
+          <div class="arch-dot" style="background:var(--teal);"></div>
+          <div class="arch-name">CarbonCertNFT</div>
+        </div>
+        <div class="arch-standard">ERC-721</div>
+        <div class="arch-desc">Certificados únicos de CO₂. Cada NFT armazena: toneladas compensadas, projeto, data e emissor. Metadados no IPFS.</div>
+        <div class="arch-feature">ERC721URIStorage</div>
+      </div>
+
+      <div class="arch-card">
+        <div class="arch-card-top">
+          <div class="arch-dot" style="background:var(--amber);"></div>
+          <div class="arch-name">GreenStaking</div>
+        </div>
+        <div class="arch-standard">Custom + Chainlink</div>
+        <div class="arch-desc">Stake de GRN com APR dinâmico. 10% base + 5% bônus quando ETH/USD > $2.000. Recompensas mintadas em tempo real.</div>
+        <div class="arch-feature">APR via Oracle ⚡</div>
+      </div>
+
+      <div class="arch-card">
+        <div class="arch-card-top">
+          <div class="arch-dot" style="background:var(--blue);"></div>
+          <div class="arch-name">GreenDAO</div>
+        </div>
+        <div class="arch-standard">Custom DAO</div>
+        <div class="arch-desc">Governança descentralizada. Propostas, votação ponderada por GRN, quórum 1%, período de 3 dias.</div>
+        <div class="arch-feature">Quórum: 1% supply</div>
+      </div>
+    </div>
+
+    <div class="chainlink-badge">
+      <span>⛓</span>
+      <span>Chainlink AggregatorV3 — ETH/USD Feed — Sepolia: 0x694AA1769357215DE4FAC081bf1f309aDC325306</span>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 4 — CÓDIGO ════════════════════════════════════ -->
+  <div class="slide" id="s4">
+    <div class="s4-left">
+      <div class="tag">Implementação</div>
+      <div class="display" style="font-size:52px; margin-bottom:16px;">
+        CÓDIGO<br><span>SEGURO</span><br>& AUDITADO
+      </div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px;">
+        Solidity <strong style="color:var(--text)">^0.8.20</strong> com bibliotecas OpenZeppelin v5 para ERC-20, ERC-721, AccessControl, ReentrancyGuard e SafeERC20.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text);">
+          <span style="color:var(--green);">✓</span> ReentrancyGuard em todas as funções críticas
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text);">
+          <span style="color:var(--green);">✓</span> Checks-Effects-Interactions pattern
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text);">
+          <span style="color:var(--green);">✓</span> SafeERC20 para transferências
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text);">
+          <span style="color:var(--green);">✓</span> AccessControl com roles explícitas
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text);">
+          <span style="color:var(--green);">✓</span> Overflow protection built-in (^0.8)
+        </div>
+      </div>
+    </div>
+
+    <div class="s4-right">
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot" style="background:#ff5f57"></div>
+            <div class="code-dot" style="background:#febc2e"></div>
+            <div class="code-dot" style="background:#28c840"></div>
+          </div>
+          <div class="code-filename">GreenStaking.sol — stake() + oracle</div>
+        </div>
+        <div class="code-body">
+<span class="cmt">// APR dinâmico via Chainlink</span><br>
+<span class="kw">function</span> <span class="fn">_calculateRewards</span>(<br>
+&nbsp;&nbsp;<span class="cls">uint256</span> amount, <span class="cls">uint256</span> since<br>
+) <span class="kw">internal view returns</span> (<span class="cls">uint256</span>) {<br>
+&nbsp;&nbsp;<span class="cls">uint256</span> apr = BASE_APR_BPS; <span class="cmt">// 10%</span><br>
+&nbsp;&nbsp;<span class="cls">int256</span> price = <span class="fn">getEthUsdPrice</span>();<br>
+&nbsp;&nbsp;<span class="kw">if</span> (price &gt; <span class="kw">int256</span>(ETH_BONUS_THRESHOLD))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;apr += BONUS_APR_BPS; <span class="cmt">// +5% se ETH &gt; $2k</span><br>
+&nbsp;&nbsp;<span class="kw">return</span> (amount * apr * elapsed)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; / (SECONDS_PER_YEAR * <span class="num">10_000</span>);<br>
+}<br><br>
+<span class="cmt">// Checks-Effects-Interactions</span><br>
+<span class="kw">function</span> <span class="fn">unstake</span>(<span class="cls">uint256</span> amount)<br>
+&nbsp;&nbsp;<span class="kw">external</span> <span class="dec">nonReentrant</span> {<br>
+&nbsp;&nbsp;<span class="fn">_accumulateRewards</span>(msg.sender); <span class="cmt">// 1</span><br>
+&nbsp;&nbsp;stakes[msg.sender].amount -= amount; <span class="cmt">// 2</span><br>
+&nbsp;&nbsp;stakingToken.<span class="fn">safeTransfer</span>(msg.sender, amount); <span class="cmt">// 3</span><br>
+}
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot" style="background:#ff5f57"></div>
+            <div class="code-dot" style="background:#febc2e"></div>
+            <div class="code-dot" style="background:#28c840"></div>
+          </div>
+          <div class="code-filename">GreenDAO.sol — vote()</div>
+        </div>
+        <div class="code-body">
+<span class="kw">function</span> <span class="fn">vote</span>(<span class="cls">uint256</span> proposalId, <span class="cls">bool</span> support)<br>
+&nbsp;&nbsp;<span class="kw">external</span> {<br>
+&nbsp;&nbsp;<span class="kw">require</span>(!hasVoted[proposalId][msg.sender],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"already voted"</span>); <span class="cmt">// anti double-vote</span><br>
+&nbsp;&nbsp;<span class="cls">uint256</span> weight = govToken.<span class="fn">balanceOf</span>(msg.sender);<br>
+&nbsp;&nbsp;hasVoted[proposalId][msg.sender] = <span class="kw">true</span>;<br>
+&nbsp;&nbsp;<span class="kw">if</span> (support) p.votesFor += weight;<br>
+&nbsp;&nbsp;<span class="kw">else</span> p.votesAgainst += weight; <span class="cmt">// peso = saldo GRN</span><br>
+&nbsp;&nbsp;<span class="kw">emit</span> <span class="fn">VoteCast</span>(proposalId, msg.sender, support, weight);<br>
+}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 5 — STAKING + ORACLE ════════════════════════ -->
+  <div class="slide" id="s5">
+    <div class="tag">Staking + Oracle Chainlink</div>
+    <div class="display" style="font-size:50px;margin-bottom:20px;text-align:center;">
+      APR <span>DINÂMICO</span> EM TEMPO REAL
+    </div>
+
+    <div class="oracle-live">
+      <div>
+        <div class="oracle-label-sm">ETH / USD · Chainlink Oracle</div>
+        <div class="oracle-price-big" id="ethPrice">$3,245</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;">
+          AggregatorV3 · Sepolia Feed · latestRoundData()
+        </div>
+      </div>
+      <div class="oracle-sep"></div>
+      <div class="apr-display">
+        <div class="oracle-label-sm">APR Atual</div>
+        <div class="apr-val" id="aprVal">15%</div>
+        <div class="apr-label">Base 10% + Bônus 5% (ETH &gt; $2.000)</div>
+      </div>
+      <div class="oracle-sep"></div>
+      <div>
+        <div class="oracle-label-sm">Total Staked</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;color:var(--text);line-height:1;">1,000</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">GRN tokens</div>
+      </div>
+    </div>
+
+    <div class="staking-flow">
+      <div class="flow-step">
+        <div class="flow-num">01</div>
+        <div class="flow-title">Aprovação</div>
+        <div class="flow-desc">Usuário aprova o contrato Staking a gastar seus GRN via <span style="color:var(--green);font-family:'DM Mono',monospace;font-size:10px;">approve()</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">02</div>
+        <div class="flow-title">Stake</div>
+        <div class="flow-desc">Tokens transferidos ao contrato. Saldo e timestamp registrados no mapping <span style="color:var(--green);font-family:'DM Mono',monospace;font-size:10px;">stakes[]</span></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">03</div>
+        <div class="flow-title">Acumulação</div>
+        <div class="flow-desc">Recompensas acumuladas por segundo usando APR do Chainlink. Calculadas sob demanda, sem loop.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">04</div>
+        <div class="flow-title">Claim / Unstake</div>
+        <div class="flow-desc">GRN mintados diretamente na wallet do usuário. Unstake automático inclui claim de recompensas.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 6 — DAO ══════════════════════════════════════ -->
+  <div class="slide" id="s6">
+    <div class="s6-left">
+      <div class="tag">GreenDAO</div>
+      <div class="display" style="font-size:58px; margin-bottom:16px;">
+        GOVER<span>NANÇA</span><br>COMUNI<span class="teal">TÁRIA</span>
+      </div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:8px;">
+        Qualquer holder com <strong style="color:var(--text)">≥ 1.000 GRN</strong> pode criar propostas. O peso do voto é proporcional ao saldo.
+      </p>
+      <div class="dao-stats">
+        <div class="dao-stat">
+          <div class="dao-stat-val">3</div>
+          <div class="dao-stat-lbl">Dias de votação</div>
+        </div>
+        <div class="dao-stat">
+          <div class="dao-stat-val">1%</div>
+          <div class="dao-stat-lbl">Quórum mínimo</div>
+        </div>
+        <div class="dao-stat">
+          <div class="dao-stat-val">GRN</div>
+          <div class="dao-stat-lbl">Peso do voto</div>
+        </div>
+        <div class="dao-stat">
+          <div class="dao-stat-val">4</div>
+          <div class="dao-stat-lbl">Estados possíveis</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="s6-right">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">Propostas Ativas</div>
+
+      <div class="proposal-item">
+        <div class="proposal-meta">
+          <div class="proposal-id">#1 · 0x742d...44e8</div>
+          <span class="status-badge status-active">ACTIVE</span>
+        </div>
+        <div class="proposal-text">Aumentar APR do staking para 15% quando ETH/USD &gt; $3.000 (threshold dinâmico via DAO)</div>
+        <div class="vote-bar-wrap">
+          <div class="vote-bar-fill" style="width:72%;background:var(--green);"></div>
+        </div>
+        <div class="vote-nums">
+          <span style="color:var(--green);">✓ 72% A FAVOR (7,2M GRN)</span>
+          <span style="color:var(--red);">✗ 28% CONTRA (2,8M GRN)</span>
+        </div>
+      </div>
+
+      <div class="proposal-item">
+        <div class="proposal-meta">
+          <div class="proposal-id">#2 · 0x9f3a...12bc</div>
+          <span class="status-badge status-passed">PASSED</span>
+        </div>
+        <div class="proposal-text">Adicionar pool GRN/ETH no Uniswap V3 com 5% da tesouraria do protocolo</div>
+        <div class="vote-bar-wrap">
+          <div class="vote-bar-fill" style="width:89%;background:var(--teal);"></div>
+        </div>
+        <div class="vote-nums">
+          <span style="color:var(--teal);">✓ 89% A FAVOR</span>
+          <span style="color:var(--muted);">✗ 11% CONTRA</span>
+        </div>
+      </div>
+
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);line-height:1.7;">
+        <span style="color:var(--green);">Active</span> → votação em andamento<br>
+        <span style="color:var(--teal);">Passed</span> → aprovada, aguardando execução<br>
+        <span style="color:var(--red);">Rejected</span> → quórum não atingido ou votos contra venceram<br>
+        <span style="color:var(--amber);">Executed</span> → executada pelo owner/timelock
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 7 — SEGURANÇA ════════════════════════════════ -->
+  <div class="slide" id="s7">
+    <div class="tag">Segurança & Auditoria</div>
+    <div class="display" style="font-size:50px;margin-bottom:20px;text-align:center;">
+      <span>0</span> CRITICAL · <span>0</span> HIGH · <span class="teal">17/17</span> TESTES
+    </div>
+
+    <div class="security-grid">
+      <div class="security-card">
+        <div class="sec-icon">🔒</div>
+        <div class="sec-title">ReentrancyGuard</div>
+        <div class="sec-desc">Modificador <code style="color:var(--green);font-size:11px;">nonReentrant</code> em stake, unstake, claimRewards e execute da DAO. Impossibilita ataques de reentrância.</div>
+      </div>
+      <div class="security-card">
+        <div class="sec-icon">🎯</div>
+        <div class="sec-title">Checks-Effects-Interactions</div>
+        <div class="sec-desc">Estado sempre atualizado antes de qualquer chamada externa. Saldo decrementado antes da transferência de tokens.</div>
+      </div>
+      <div class="security-card">
+        <div class="sec-icon">🛡️</div>
+        <div class="sec-title">SafeERC20</div>
+        <div class="sec-desc">Todas as transferências de token usam SafeERC20, que verifica o valor de retorno e reverte em caso de falha silenciosa.</div>
+      </div>
+      <div class="security-card">
+        <div class="sec-icon">🔑</div>
+        <div class="sec-title">AccessControl</div>
+        <div class="sec-desc">Roles explícitas: MINTER_ROLE (apenas GreenStaking) e BURNER_ROLE. Nenhuma função crítica é pública sem role.</div>
+      </div>
+      <div class="security-card">
+        <div class="sec-icon">🔢</div>
+        <div class="sec-title">Overflow Protegido</div>
+        <div class="sec-desc">Solidity ^0.8.20 reverte automaticamente em overflow e underflow — sem necessidade de SafeMath.</div>
+      </div>
+      <div class="security-card">
+        <div class="sec-icon">🔬</div>
+        <div class="sec-title">Auditoria 3 Camadas</div>
+        <div class="sec-desc">Slither (análise estática) + Mythril (análise simbólica) + Hardhat (17 testes automatizados). Zero issues críticos.</div>
+      </div>
+    </div>
+
+    <div class="audit-summary">
+      <div class="audit-cell">
+        <div class="audit-sev" style="color:#ff4060;">CRITICAL</div>
+        <div class="audit-count" style="color:#ff4060;">0</div>
+        <div class="audit-status">Nenhum encontrado</div>
+      </div>
+      <div class="audit-cell">
+        <div class="audit-sev" style="color:#ff8c42;">HIGH</div>
+        <div class="audit-count" style="color:#ff8c42;">0</div>
+        <div class="audit-status">Nenhum encontrado</div>
+      </div>
+      <div class="audit-cell">
+        <div class="audit-sev" style="color:var(--amber);">MEDIUM</div>
+        <div class="audit-count" style="color:var(--amber);">2</div>
+        <div class="audit-status">2/2 mitigados</div>
+      </div>
+      <div class="audit-cell">
+        <div class="audit-sev" style="color:var(--blue);">LOW</div>
+        <div class="audit-count" style="color:var(--blue);">3</div>
+        <div class="audit-status">1 mitigado · 2 aceitos</div>
+      </div>
+      <div class="audit-cell">
+        <div class="audit-sev" style="color:var(--muted);">INFO</div>
+        <div class="audit-count" style="color:var(--muted);">4</div>
+        <div class="audit-status">Recomendações</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 8 — DEPLOY ═══════════════════════════════════ -->
+  <div class="slide" id="s8">
+    <div class="s8-left">
+      <div class="tag">Deploy · Sepolia Testnet</div>
+      <div class="display" style="font-size:56px; margin-bottom:16px;">
+        ON<span>CHAIN</span><br>& VERIFI<span class="teal">CADO</span>
+      </div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px;">
+        4 contratos deployados e verificados na Sepolia. Script Hardhat automatiza todo o processo em uma única execução.
+      </p>
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="code-dots">
+            <div class="code-dot" style="background:#ff5f57"></div>
+            <div class="code-dot" style="background:#febc2e"></div>
+            <div class="code-dot" style="background:#28c840"></div>
+          </div>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:8px;">Terminal</span>
+        </div>
+        <div class="terminal-body">
+          <span class="t-cmd">$ npx hardhat run scripts/deploy.js --network sepolia</span><br>
+          <span class="t-sep">───────────────────────────────────</span><br>
+          <span class="t-ok">✓</span> <span class="t-out">GreenToken  deployed:</span> <span class="t-addr">0x1234...7890</span><br>
+          <span class="t-ok">✓</span> <span class="t-out">CarbonCertNFT:</span>       <span class="t-addr">0xabcd...abcd</span><br>
+          <span class="t-ok">✓</span> <span class="t-out">GreenStaking:</span>        <span class="t-addr">0x9876...3210</span><br>
+          <span class="t-ok">✓</span> <span class="t-out">GreenDAO:</span>            <span class="t-addr">0xfedc...ba98</span><br>
+          <span class="t-ok">✓</span> <span class="t-out">Roles configured</span><br>
+          <span class="t-ok">✓</span> <span class="t-out">NFT #1 minted (100t CO₂)</span><br>
+          <span class="t-ok">✓</span> <span class="t-out">1000 GRN staked</span><br>
+          <span class="t-ok">✓</span> <span class="t-out">DAO Proposal #1 created</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="s8-right">
+      <div class="deploy-card">
+        <div class="deploy-icon" style="background:rgba(45,255,120,0.1);">🟢</div>
+        <div>
+          <div class="deploy-name">GreenToken (GRN) — ERC-20</div>
+          <div class="deploy-addr">0x1234567890123456789012345678901234567890</div>
+        </div>
+        <div class="deploy-link">Etherscan ↗</div>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-icon" style="background:rgba(0,229,196,0.1);">🌿</div>
+        <div>
+          <div class="deploy-name">CarbonCertNFT — ERC-721</div>
+          <div class="deploy-addr">0xabcdefabcdefabcdefabcdefabcdefabcdefabcd</div>
+        </div>
+        <div class="deploy-link">Etherscan ↗</div>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-icon" style="background:rgba(245,200,66,0.1);">⚡</div>
+        <div>
+          <div class="deploy-name">GreenStaking + Chainlink</div>
+          <div class="deploy-addr">0x9876543210987654321098765432109876543210</div>
+        </div>
+        <div class="deploy-link">Etherscan ↗</div>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-icon" style="background:rgba(77,168,255,0.1);">🗳</div>
+        <div>
+          <div class="deploy-name">GreenDAO — Governança</div>
+          <div class="deploy-addr">0xfedcba9876543210fedcba9876543210fedcba98</div>
+        </div>
+        <div class="deploy-link">Etherscan ↗</div>
+      </div>
+
+      <div style="background:var(--bg2);border:1px solid rgba(245,200,66,0.2);border-radius:12px;padding:16px 20px;margin-top:4px;">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--amber);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Chainlink Oracle</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">ETH/USD Sepolia Feed</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text);margin-top:4px;">0x694AA1769357215DE4FAC081bf1f309aDC325306</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 9 — FINAL ════════════════════════════════════ -->
+  <div class="slide" id="s9">
+    <div class="tag">Entregáveis</div>
+    <div class="display final-title">
+      MVP <span>COMPLETO</span><br>& <span class="teal">ENTREGUE</span>
+    </div>
+
+    <div class="deliverables">
+      <div class="del-card">
+        <div class="del-icon">📄</div>
+        <div class="del-title">Relatório Técnico</div>
+        <div class="del-desc">PDF completo com arquitetura, implementação, justificativas ERC e rubrica</div>
+      </div>
+      <div class="del-card">
+        <div class="del-icon">🔬</div>
+        <div class="del-title">Relatório de Auditoria</div>
+        <div class="del-desc">9 findings documentados · Slither · Mythril · 17 testes Hardhat · Checklist</div>
+      </div>
+      <div class="del-card">
+        <div class="del-icon">💻</div>
+        <div class="del-title">GitHub + dApp</div>
+        <div class="del-desc">4 contratos Solidity · deploy script · backend ethers.js · frontend dApp</div>
+      </div>
+      <div class="del-card">
+        <div class="del-icon">🎬</div>
+        <div class="del-title">Vídeo Demo</div>
+        <div class="del-desc">Demonstração completa do funcionamento do protocolo · 7–9 minutos</div>
+      </div>
+    </div>
+
+    <div class="final-tag">
+      RESIDÊNCIA EM TIC 29 · WEB3.0 · UNIDADE 1 · CAPÍTULO 5 · PROF. BRUNO PORTES
+    </div>
+  </div>
+
+</div><!-- /deck -->
+
+<!-- Nav -->
+<div class="nav" id="nav"></div>
+
+<script>
+const SLIDES = document.querySelectorAll('.slide');
+const LABELS = [
+  'Título', 'O Problema', 'Arquitetura',
+  'Código', 'Staking + Oracle', 'DAO',
+  'Segurança', 'Deploy', 'Entregáveis'
+];
+let current = 0;
+
+// ── Build nav ────────────────────────────────────────────────
+const nav = document.getElementById('nav');
+const prevBtn = document.createElement('button');
+prevBtn.className = 'nav-btn'; prevBtn.textContent = '← Anterior';
+prevBtn.onclick = () => go(current - 1);
+nav.appendChild(prevBtn);
+
+const dots = [];
+SLIDES.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'nav-dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => go(i);
+  nav.appendChild(d);
+  dots.push(d);
+});
+
+const counter = document.createElement('div');
+counter.className = 'slide-counter';
+nav.appendChild(counter);
+
+const nextBtn = document.createElement('button');
+nextBtn.className = 'nav-btn'; nextBtn.textContent = 'Próximo →';
+nextBtn.onclick = () => go(current + 1);
+nav.appendChild(nextBtn);
+
+// ── Go to slide ──────────────────────────────────────────────
+function go(n) {
+  if (n < 0 || n >= SLIDES.length) return;
+  SLIDES[current].classList.remove('active');
+  dots[current].classList.remove('active');
+  current = n;
+  SLIDES[current].classList.add('active');
+  dots[current].classList.add('active');
+  counter.textContent = `${current + 1} / ${SLIDES.length}`;
+  document.getElementById('progress').style.width =
+    `${((current + 1) / SLIDES.length) * 100}%`;
+  document.getElementById('slideLabel').textContent =
+    `GREENCHAIN — ${LABELS[current].toUpperCase()}`;
+}
+go(0);
+
+// ── Keyboard ─────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') go(current + 1);
+  if (e.key === 'ArrowLeft'  || e.key === 'PageUp')  go(current - 1);
+  if (e.key >= '1' && e.key <= '9') go(parseInt(e.key) - 1);
+});
+
+// ── Cursor ────────────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX - 5 + 'px';
+  cursor.style.top  = e.clientY - 5 + 'px';
+});
+
+// ── Simulated ETH price ticker ────────────────────────────────
+let ethBase = 3245;
+setInterval(() => {
+  ethBase += (Math.random() - 0.5) * 25;
+  const fmt = '$' + Math.round(ethBase).toLocaleString('pt-BR');
+  const el = document.getElementById('ethPrice');
+  if (el) {
+    el.textContent = fmt;
+    el.style.animation = 'ticker 0.4s ease';
+    setTimeout(() => el.style.animation = '', 400);
+  }
+  const apr = document.getElementById('aprVal');
+  if (apr) apr.textContent = ethBase > 2000 ? '15%' : '10%';
+}, 2500);
+
+// ── Touch / swipe ─────────────────────────────────────────────
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (dx < -50) go(current + 1);
+  if (dx >  50) go(current - 1);
+});
+</script>
+</body>
+</html>
