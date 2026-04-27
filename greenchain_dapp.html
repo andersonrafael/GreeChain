@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EcoChain Protocol — Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    :root {
+      --bg: #0a0f0d;
+      --bg2: #111a15;
+      --bg3: #162019;
+      --border: #1e3024;
+      --green: #22c55e;
+      --green-dim: #16a34a;
+      --green-glow: rgba(34, 197, 94, 0.15);
+      --teal: #14b8a6;
+      --text: #e2f0e8;
+      --text-dim: #7a9985;
+      --red: #f87171;
+      --yellow: #fbbf24;
+      --radius: 12px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(34,197,94,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,197,94,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Top glow */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(34,197,94,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 28px 0 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--green), var(--teal));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .logo-text h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    .connect-btn {
+      background: linear-gradient(135deg, var(--green), var(--teal));
+      color: #000;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .connect-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .connect-btn:active { transform: translateY(0); }
+
+    .wallet-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+
+    .wallet-dot {
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── NETWORK BADGE ── */
+    .network-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(20, 184, 166, 0.1);
+      border: 1px solid rgba(20, 184, 166, 0.3);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--teal);
+      margin: 16px 0;
+    }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      transition: border-color 0.2s;
+    }
+
+    .stat-card:hover { border-color: var(--green-dim); }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--green);
+    }
+
+    .stat-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin: 24px 0 16px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-dim);
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .tab.active {
+      background: var(--bg3);
+      color: var(--green);
+      border: 1px solid var(--border);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── PANELS ── */
+    .panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    .panel-title::before {
+      content: '';
+      width: 3px;
+      height: 16px;
+      background: var(--green);
+      border-radius: 2px;
+    }
+
+    /* ── FORMS ── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+    label {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    input, select, textarea {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--green-dim);
+      box-shadow: 0 0 0 3px var(--green-glow);
+    }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    select option { background: var(--bg3); }
+
+    /* ── BUTTONS ── */
+    .btn {
+      padding: 11px 20px;
+      border-radius: 8px;
+      border: none;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--green), var(--teal));
+      color: #000;
+      width: 100%;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--green);
+      border: 1px solid var(--green-dim);
+    }
+
+    .btn-outline:hover { background: var(--green-glow); }
+
+    .btn-danger {
+      background: rgba(248, 113, 113, 0.1);
+      color: var(--red);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+
+    /* ── STAKING INFO ── */
+    .stake-info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .info-cell {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .info-cell .label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+    .info-cell .value { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; }
+
+    /* ── PROPOSALS ── */
+    .proposal-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 10px;
+      transition: border-color 0.2s;
+    }
+
+    .proposal-card:hover { border-color: var(--green-dim); }
+
+    .proposal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .proposal-title { font-weight: 600; font-size: 15px; }
+    .proposal-type {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      color: var(--green);
+    }
+
+    .vote-bar {
+      height: 6px;
+      background: var(--bg);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .vote-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--teal));
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    .vote-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .vote-for { color: var(--green); }
+    .vote-against { color: var(--red); }
+
+    /* ── TX LOG ── */
+    .tx-log {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      max-height: 180px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .tx-entry { display: flex; gap: 10px; align-items: flex-start; }
+    .tx-time { color: var(--text-dim); flex-shrink: 0; }
+    .tx-success { color: var(--green); }
+    .tx-error { color: var(--red); }
+    .tx-info { color: var(--teal); }
+    .tx-warning { color: var(--yellow); }
+
+    /* ── ORACLE CARD ── */
+    .oracle-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+    }
+
+    .oracle-left { display: flex; align-items: center; gap: 12px; }
+    .oracle-icon { font-size: 24px; }
+    .oracle-name { font-weight: 600; font-size: 14px; }
+    .oracle-source { font-size: 11px; color: var(--text-dim); }
+    .oracle-price { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: var(--green); }
+
+    /* ── NFT GRID ── */
+    .nft-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .nft-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .nft-card:hover { transform: translateY(-2px); border-color: var(--green-dim); }
+
+    .nft-visual {
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      background: linear-gradient(135deg, var(--bg), var(--bg3));
+    }
+
+    .nft-info { padding: 10px; }
+    .nft-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
+    .nft-type { font-weight: 600; font-size: 13px; margin: 2px 0; }
+    .nft-co2 { font-size: 12px; color: var(--green); }
+
+    /* ── STATUS ── */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .status-active { background: rgba(34,197,94,0.1); color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
+    .status-pending { background: rgba(251,191,36,0.1); color: var(--yellow); border: 1px solid rgba(251,191,36,0.25); }
+    .status-defeated { background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── LOADER ── */
+    .loader {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(34,197,94,0.3);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hidden { display: none !important; }
+
+    /* ── FOOTER ── */
+    footer {
+      margin-top: 40px;
+      padding: 20px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    @media (max-width: 768px) {
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+      .stake-info-grid { grid-template-columns: 1fr 1fr; }
+      .nft-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🌿</div>
+      <div class="logo-text">
+        <h1>EcoChain</h1>
+        <span>Decentralized Green Protocol</span>
+      </div>
+    </div>
+    <div id="wallet-section">
+      <button class="connect-btn" id="connect-btn" onclick="connectWallet()">
+        <span>🔗</span> Connect Wallet
+      </button>
+      <div class="wallet-info hidden" id="wallet-info">
+        <div class="wallet-dot"></div>
+        <span id="wallet-address">0x0000...0000</span>
+        <span style="color:var(--text-dim)">|</span>
+        <span id="eco-balance" style="color:var(--green)">0 ECO</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NETWORK BADGE -->
+  <div class="network-badge">
+    <span>●</span>
+    <span id="network-name">Sepolia Testnet</span>
+    <span style="color:var(--text-dim)">·</span>
+    <span id="block-number">Block #0</span>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">ETH/USD</div>
+      <div class="stat-value" id="eth-price">$—</div>
+      <div class="stat-sub">Chainlink Oracle</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Staked</div>
+      <div class="stat-value" id="total-staked">0 ECO</div>
+      <div class="stat-sub">Protocol TVL</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">NFTs Minted</div>
+      <div class="stat-value" id="nft-count">0</div>
+      <div class="stat-sub">Certificates issued</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Proposals</div>
+      <div class="stat-value" id="proposal-count">0</div>
+      <div class="stat-sub">DAO Governance</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('nft')">🖼️ NFT Mint</div>
+    <div class="tab" onclick="switchTab('stake')">💎 Staking</div>
+    <div class="tab" onclick="switchTab('dao')">🗳️ DAO</div>
+    <div class="tab" onclick="switchTab('oracle')">🔮 Oracle</div>
+  </div>
+
+  <!-- ─── TAB: NFT ─── -->
+  <div class="tab-content active" id="tab-nft">
+    <div class="panel">
+      <div class="panel-title">Mint Environmental Certificate NFT</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Impact Type</label>
+          <select id="impact-type">
+            <option value="reforestation">🌱 Reforestation</option>
+            <option value="solar">☀️ Solar Energy</option>
+            <option value="recycling">♻️ Recycling</option>
+            <option value="ocean_cleanup">🌊 Ocean Cleanup</option>
+            <option value="wind">💨 Wind Energy</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>CO₂ Offset (kg)</label>
+          <input type="number" id="co2-amount" placeholder="500" min="1"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Metadata URI (IPFS)</label>
+        <input type="text" id="token-uri" placeholder="ipfs://Qm..."/>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim);margin-top:8px;">
+        Mint price: <span style="color:var(--green)">0.001 ETH</span>
+      </div>
+      <button class="btn btn-primary" id="mint-btn" onclick="mintNFT()">
+        🖼️ Mint Certificate NFT
+      </button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Your Certificates</div>
+      <div class="nft-grid" id="nft-grid">
+        <!-- NFT cards injected here -->
+        <div style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:20px;font-size:14px;">
+          Connect wallet to view your certificates
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: STAKE ─── -->
+  <div class="tab-content" id="tab-stake">
+    <div class="panel">
+      <div class="panel-title">Stake ECO Tokens</div>
+
+      <div class="stake-info-grid">
+        <div class="info-cell">
+          <div class="label">Your Stake</div>
+          <div class="value" id="user-staked">0 ECO</div>
+        </div>
+        <div class="info-cell">
+          <div class="label">Pending Rewards</div>
+          <div class="value" style="color:var(--green)" id="pending-rewards">0 ECO</div>
+        </div>
+        <div class="info-cell">
+          <div class="label">Unlock Date</div>
+          <div class="value" id="unlock-date">—</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Stake Amount (ECO)</label>
+          <input type="number" id="stake-amount" placeholder="Minimum: 100 ECO"/>
+        </div>
+        <div class="form-group">
+          <label>Unstake Amount (ECO)</label>
+          <input type="number" id="unstake-amount" placeholder="Amount to unstake"/>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px;">
+        <button class="btn btn-primary" style="margin:0" onclick="approveAndStake()">💎 Stake</button>
+        <button class="btn btn-outline" onclick="unstakeTokens()">🔓 Unstake</button>
+        <button class="btn btn-outline" onclick="claimRewards()">🎁 Claim Rewards</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Reward Rate (Dynamic)</div>
+      <div class="oracle-card">
+        <div class="oracle-left">
+          <div class="oracle-icon">⚡</div>
+          <div>
+            <div class="oracle-name">Current Reward Rate</div>
+            <div class="oracle-source">Adjusted by Chainlink ETH/USD</div>
+          </div>
+        </div>
+        <div>
+          <div class="oracle-price" id="reward-rate">— ECO/block</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.8;">
+        🟢 ETH > $3,000 → +20% bonus rate &nbsp;|&nbsp;
+        🟡 $1,500–$3,000 → base rate &nbsp;|&nbsp;
+        🔴 ETH < $1,500 → -20% rate
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: DAO ─── -->
+  <div class="tab-content" id="tab-dao">
+    <div class="panel">
+      <div class="panel-title">Create Governance Proposal</div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>Proposal Type</label>
+        <select id="proposal-type">
+          <option value="0">⚙️ Parameter Change</option>
+          <option value="1">💰 Treasury Spend</option>
+          <option value="2">🔄 Upgrade</option>
+          <option value="3">📝 Text Proposal</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>Title</label>
+        <input type="text" id="proposal-title" placeholder="Proposal title..."/>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>Description</label>
+        <textarea id="proposal-desc" placeholder="Detailed description of the proposal..."></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="createProposal()">🗳️ Submit Proposal</button>
+      <div style="font-size:12px;color:var(--text-dim);margin-top:8px;">
+        ⚠️ Requires ≥ 10,000 ECO voting power
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Active Proposals</div>
+      <div id="proposals-list">
+        <div style="text-align:center;color:var(--text-dim);padding:20px;font-size:14px;">
+          No proposals yet. Connect wallet to view proposals.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: ORACLE ─── -->
+  <div class="tab-content" id="tab-oracle">
+    <div class="panel">
+      <div class="panel-title">Chainlink Price Feeds</div>
+
+      <div class="oracle-card">
+        <div class="oracle-left">
+          <div class="oracle-icon">💎</div>
+          <div>
+            <div class="oracle-name">ETH / USD</div>
+            <div class="oracle-source">Chainlink · Sepolia · 0x694A...6306</div>
+          </div>
+        </div>
+        <div class="oracle-price" id="oracle-eth-price">$—</div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text-dim)">USAGE IN PROTOCOL</div>
+        <div style="font-size:13px;line-height:2;color:var(--text)">
+          The staking contract (<code style="background:var(--bg3);padding:2px 6px;border-radius:4px;color:var(--teal)">EcoStaking.sol</code>)
+          calls <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;color:var(--teal)">updateOraclePrice()</code> on each stake/claim
+          operation to fetch the latest ETH/USD price from Chainlink and dynamically adjust the ECO reward rate.
+        </div>
+      </div>
+
+      <button class="btn btn-outline" onclick="refreshOracle()">🔄 Refresh Oracle Price</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Transaction Log</div>
+      <div class="tx-log" id="tx-log">
+        <div class="tx-entry">
+          <span class="tx-time">[00:00:00]</span>
+          <span class="tx-info">EcoChain Protocol frontend initialized. Connect wallet to start.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    EcoChain Protocol · Residência em TIC 29 — Web 3.0 · Sepolia Testnet · Solidity ^0.8.20
+  </footer>
+</div>
+
+<script>
+// ─── CONTRACT ADDRESSES (update after deploy) ─────────────────
+const CONTRACTS = {
+  EcoToken:     "0x0000000000000000000000000000000000000001",
+  EcoNFT:       "0x0000000000000000000000000000000000000002",
+  EcoStaking:   "0x0000000000000000000000000000000000000003",
+  EcoGovernance:"0x0000000000000000000000000000000000000004",
+};
+
+// ─── ABIs ────────────────────────────────────────────────────
+const EcoTokenABI = [
+  "function balanceOf(address) view returns (uint256)",
+  "function approve(address, uint256) returns (bool)",
+  "function delegate(address)",
+  "function getPastVotes(address, uint256) view returns (uint256)",
+];
+
+const EcoNFTABI = [
+  "function publicMint(string,string,uint256) payable returns (uint256)",
+  "function mintPrice() view returns (uint256)",
+  "function totalSupply() view returns (uint256)",
+  "function certificates(uint256) view returns (string,uint256,uint256,address)",
+  "event NFTMinted(address indexed, uint256 indexed, string, uint256)",
+];
+
+const EcoStakingABI = [
+  "function stake(uint256)",
+  "function unstake(uint256)",
+  "function claimRewards()",
+  "function pendingReward(address) view returns (uint256)",
+  "function getStakeDetails(address) view returns (uint256,uint256,uint256,uint256,bool)",
+  "function getAdjustedRewardRate() view returns (uint256)",
+  "function updateOraclePrice()",
+  "function lastEthPrice() view returns (int256)",
+  "function totalStaked() view returns (uint256)",
+];
+
+const EcoGovernanceABI = [
+  "function propose(uint8,string,string,address,bytes) returns (uint256)",
+  "function castVoteWithReason(uint256,uint8,string) returns (uint256)",
+  "function getProposal(uint256) view returns (tuple(uint256,address,uint8,string,string,uint256,uint256,uint256,uint256,uint256,uint256,bool,bool,uint256,bytes,address))",
+  "function proposalCount() view returns (uint256)",
+  "function state(uint256) view returns (uint8)",
+];
+
+// ─── STATE ───────────────────────────────────────────────────
+let provider, signer, userAddress;
+let ecoToken, ecoNFT, ecoStaking, ecoGovernance;
+
+const PROPOSAL_STATES = ["Pending","Active","Canceled","Defeated","Succeeded","Queued","Executed"];
+const IMPACT_EMOJIS = {
+  reforestation: "🌱",
+  solar: "☀️",
+  recycling: "♻️",
+  ocean_cleanup: "🌊",
+  wind: "💨"
+};
+
+// ─── LOGGING ─────────────────────────────────────────────────
+function log(msg, type = "info") {
+  const log = document.getElementById("tx-log");
+  const t = new Date().toTimeString().split(" ")[0];
+  const div = document.createElement("div");
+  div.className = "tx-entry";
+  div.innerHTML = `<span class="tx-time">[${t}]</span><span class="tx-${type}">${msg}</span>`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ─── CONNECT ─────────────────────────────────────────────────
+async function connectWallet() {
+  if (!window.ethereum) {
+    alert("MetaMask not found. Please install MetaMask.");
+    return;
+  }
+  try {
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = await provider.getSigner();
+    userAddress = await signer.getAddress();
+
+    ecoToken = new ethers.Contract(CONTRACTS.EcoToken, EcoTokenABI, signer);
+    ecoNFT = new ethers.Contract(CONTRACTS.EcoNFT, EcoNFTABI, signer);
+    ecoStaking = new ethers.Contract(CONTRACTS.EcoStaking, EcoStakingABI, signer);
+    ecoGovernance = new ethers.Contract(CONTRACTS.EcoGovernance, EcoGovernanceABI, signer);
+
+    document.getElementById("connect-btn").classList.add("hidden");
+    document.getElementById("wallet-info").classList.remove("hidden");
+
+    const short = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+    document.getElementById("wallet-address").textContent = short;
+
+    log(`Wallet connected: ${short}`, "success");
+    await refreshAll();
+
+    // Subscribe to new blocks
+    provider.on("block", async (bn) => {
+      document.getElementById("block-number").textContent = `Block #${bn}`;
+    });
+  } catch (err) {
+    log(`Connection error: ${err.message}`, "error");
+  }
+}
+
+// ─── REFRESH ─────────────────────────────────────────────────
+async function refreshAll() {
+  try {
+    const net = await provider.getNetwork();
+    document.getElementById("network-name").textContent =
+      net.name === "unknown" ? `Chain ${net.chainId}` : net.name;
+    const bn = await provider.getBlockNumber();
+    document.getElementById("block-number").textContent = `Block #${bn}`;
+
+    await Promise.all([
+      refreshBalance(),
+      refreshStakingInfo(),
+      refreshOraclePrice(),
+      refreshStats(),
+      refreshProposals(),
+    ]);
+  } catch (err) {
+    log(`Refresh error: ${err.message}`, "error");
+  }
+}
+
+async function refreshBalance() {
+  try {
+    const bal = await ecoToken.balanceOf(userAddress);
+    document.getElementById("eco-balance").textContent =
+      `${parseFloat(ethers.formatEther(bal)).toFixed(0)} ECO`;
+  } catch {}
+}
+
+async function refreshStats() {
+  try {
+    const [totalStaked, nftTotal, propCount] = await Promise.all([
+      ecoStaking.totalStaked(),
+      ecoNFT.totalSupply(),
+      ecoGovernance.proposalCount(),
+    ]);
+    document.getElementById("total-staked").textContent =
+      `${parseFloat(ethers.formatEther(totalStaked)).toFixed(0)} ECO`;
+    document.getElementById("nft-count").textContent = nftTotal.toString();
+    document.getElementById("proposal-count").textContent = propCount.toString();
+  } catch {}
+}
+
+async function refreshOraclePrice() {
+  try {
+    const price = await ecoStaking.lastEthPrice();
+    if (price > 0n) {
+      const usd = (Number(price) / 1e8).toFixed(2);
+      document.getElementById("eth-price").textContent = `$${Number(usd).toLocaleString()}`;
+      document.getElementById("oracle-eth-price").textContent = `$${Number(usd).toLocaleString()}`;
+    }
+    const rate = await ecoStaking.getAdjustedRewardRate();
+    document.getElementById("reward-rate").textContent =
+      `${parseFloat(ethers.formatEther(rate)).toFixed(2)} ECO/block`;
+  } catch {}
+}
+
+async function refreshStakingInfo() {
+  try {
+    const details = await ecoStaking.getStakeDetails(userAddress);
+    document.getElementById("user-staked").textContent =
+      `${parseFloat(ethers.formatEther(details[0])).toFixed(2)} ECO`;
+    document.getElementById("pending-rewards").textContent =
+      `${parseFloat(ethers.formatEther(details[1])).toFixed(4)} ECO`;
+    if (details[3] > 0n) {
+      const d = new Date(Number(details[3]) * 1000);
+      document.getElementById("unlock-date").textContent = d.toLocaleDateString("pt-BR");
+    }
+  } catch {}
+}
+
+async function refreshProposals() {
+  try {
+    const count = await ecoGovernance.proposalCount();
+    const container = document.getElementById("proposals-list");
+    container.innerHTML = "";
+
+    if (count === 0n) {
+      container.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:14px;">No proposals yet.</div>';
+      return;
+    }
+
+    for (let i = 1n; i <= count; i++) {
+      try {
+        const p = await ecoGovernance.getProposal(i);
+        const st = await ecoGovernance.state(i);
+        const stateLabel = PROPOSAL_STATES[Number(st)] || "Unknown";
+        const stateClass = st === 1n ? "status-active" : st === 3n ? "status-defeated" : "status-pending";
+
+        const total = p[8] + p[9] + p[10]; // for + against + abstain
+        const pct = total > 0n ? Number((p[8] * 100n) / total) : 0;
+
+        const card = document.createElement("div");
+        card.className = "proposal-card";
+        card.innerHTML = `
+          <div class="proposal-header">
+            <div class="proposal-title">${p[3]}</div>
+            <span class="status-badge ${stateClass}">${stateLabel}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px;">${p[4].slice(0,120)}${p[4].length>120?"...":""}</div>
+          <div class="vote-bar">
+            <div class="vote-bar-fill" style="width:${pct}%"></div>
+          </div>
+          <div class="vote-stats">
+            <span class="vote-for">✅ For: ${parseFloat(ethers.formatEther(p[8])).toFixed(0)} ECO</span>
+            <span class="vote-against">❌ Against: ${parseFloat(ethers.formatEther(p[9])).toFixed(0)} ECO</span>
+          </div>
+          ${st === 1n ? `
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn btn-outline" style="flex:1;padding:7px" onclick="vote(${i},1)">👍 For</button>
+            <button class="btn btn-danger" style="flex:1;padding:7px" onclick="vote(${i},0)">👎 Against</button>
+            <button class="btn" style="flex:1;padding:7px;background:var(--bg3);color:var(--text-dim);border:1px solid var(--border)" onclick="vote(${i},2)">🤷 Abstain</button>
+          </div>` : ""}
+        `;
+        container.appendChild(card);
+      } catch {}
+    }
+  } catch {}
+}
+
+// ─── ACTIONS ─────────────────────────────────────────────────
+
+async function mintNFT() {
+  if (!signer) { log("Connect wallet first", "warning"); return; }
+  const btn = document.getElementById("mint-btn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> Minting...';
+
+  try {
+    const impactType = document.getElementById("impact-type").value;
+    const co2 = document.getElementById("co2-amount").value || "500";
+    const uri = document.getElementById("token-uri").value || `ipfs://QmEcoCert/${Date.now()}`;
+    const price = await ecoNFT.mintPrice();
+
+    log(`Minting NFT... Impact: ${impactType}, CO2: ${co2}kg`, "info");
+    const tx = await ecoNFT.publicMint(uri, impactType, BigInt(co2), { value: price });
+    log(`Tx submitted: ${tx.hash}`, "info");
+    await tx.wait();
+    log(`✅ NFT minted! Impact: ${impactType}, CO2 offset: ${co2}kg`, "success");
+
+    // Add to grid
+    const grid = document.getElementById("nft-grid");
+    if (grid.querySelector("[style]")) grid.innerHTML = "";
+    const card = document.createElement("div");
+    card.className = "nft-card";
+    card.innerHTML = `
+      <div class="nft-visual">${IMPACT_EMOJIS[impactType] || "🌿"}</div>
+      <div class="nft-info">
+        <div class="nft-id">ECONFT #${Date.now() % 10000}</div>
+        <div class="nft-type">${impactType.replace(/_/g," ")}</div>
+        <div class="nft-co2">-${co2} kg CO₂</div>
+      </div>
+    `;
+    grid.appendChild(card);
+    await refreshStats();
+  } catch (err) {
+    log(`Mint error: ${err.message}`, "error");
+  }
+  btn.disabled = false;
+  btn.innerHTML = "🖼️ Mint Certificate NFT";
+}
+
+async function approveAndStake() {
+  if (!signer) { log("Connect wallet first", "warning"); return; }
+  const amount = document.getElementById("stake-amount").value;
+  if (!amount || Number(amount) < 100) {
+    log("Minimum stake: 100 ECO", "warning"); return;
+  }
+  try {
+    const amountWei = ethers.parseEther(amount);
+    log(`Approving ${amount} ECO...`, "info");
+    const approveTx = await ecoToken.approve(CONTRACTS.EcoStaking, amountWei);
+    await approveTx.wait();
+    log(`Approved. Staking...`, "info");
+    const stakeTx = await ecoStaking.stake(amountWei);
+    await stakeTx.wait();
+    log(`✅ Staked ${amount} ECO!`, "success");
+    await refreshStakingInfo();
+    await refreshStats();
+  } catch (err) {
+    log(`Stake error: ${err.message}`, "error");
+  }
+}
+
+async function unstakeTokens() {
+  if (!signer) { log("Connect wallet first", "warning"); return; }
+  const amount = document.getElementById("unstake-amount").value;
+  if (!amount) { log("Enter unstake amount", "warning"); return; }
+  try {
+    const amountWei = ethers.parseEther(amount);
+    log(`Unstaking ${amount} ECO...`, "info");
+    const tx = await ecoStaking.unstake(amountWei);
+    await tx.wait();
+    log(`✅ Unstaked ${amount} ECO`, "success");
+    await refreshStakingInfo();
+    await refreshStats();
+  } catch (err) {
+    log(`Unstake error: ${err.message}`, "error");
+  }
+}
+
+async function claimRewards() {
+  if (!signer) { log("Connect wallet first", "warning"); return; }
+  try {
+    log("Claiming rewards...", "info");
+    const tx = await ecoStaking.claimRewards();
+    await tx.wait();
+    log("✅ Rewards claimed!", "success");
+    await refreshStakingInfo();
+    await refreshBalance();
+  } catch (err) {
+    log(`Claim error: ${err.message}`, "error");
+  }
+}
+
+async function createProposal() {
+  if (!signer) { log("Connect wallet first", "warning"); return; }
+  const type = document.getElementById("proposal-type").value;
+  const title = document.getElementById("proposal-title").value;
+  const desc = document.getElementById("proposal-desc").value;
+  if (!title || !desc) { log("Fill in title and description", "warning"); return; }
+  try {
+    log(`Creating proposal: "${title}"...`, "info");
+    const tx = await ecoGovernance.propose(
+      Number(type), title, desc, ethers.ZeroAddress, "0x"
+    );
+    await tx.wait();
+    log(`✅ Proposal created!`, "success");
+    document.getElementById("proposal-title").value = "";
+    document.getElementById("proposal-desc").value = "";
+    await refreshProposals();
+    await refreshStats();
+  } catch (err) {
+    log(`Proposal error: ${err.message}`, "error");
+  }
+}
+
+async function vote(proposalId, support) {
+  if (!signer) { log("Connect wallet first", "warning"); return; }
+  const labels = ["against", "for", "abstain"];
+  try {
+    log(`Voting ${labels[support]} on proposal ${proposalId}...`, "info");
+    const tx = await ecoGovernance.castVoteWithReason(
+      proposalId, support, `Voted ${labels[support]} via EcoChain frontend`
+    );
+    await tx.wait();
+    log(`✅ Vote cast: ${labels[support]} on proposal #${proposalId}`, "success");
+    await refreshProposals();
+  } catch (err) {
+    log(`Vote error: ${err.message}`, "error");
+  }
+}
+
+async function refreshOracle() {
+  if (!signer) { log("Connect wallet first", "warning"); return; }
+  try {
+    log("Updating oracle price from Chainlink...", "info");
+    const tx = await ecoStaking.updateOraclePrice();
+    await tx.wait();
+    await refreshOraclePrice();
+    log("✅ Oracle price updated", "success");
+  } catch (err) {
+    log(`Oracle error: ${err.message}`, "error");
+  }
+}
+
+// ─── TABS ────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll(".tab").forEach((t, i) => {
+    const tabs = ["nft","stake","dao","oracle"];
+    t.classList.toggle("active", tabs[i] === tab);
+  });
+  document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+  document.getElementById(`tab-${tab}`).classList.add("active");
+}
+</script>
+</body>
+</html>
