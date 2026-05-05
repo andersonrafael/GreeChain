@@ -855,36 +855,92 @@ function log(msg, type = "info") {
 
 // ─── CONNECT ─────────────────────────────────────────────────
 async function connectWallet() {
-  if (!window.ethereum) {
-    alert("MetaMask not found. Please install MetaMask.");
+  // Verificar se ethers carregou
+  if (typeof ethers === "undefined") {
+    alert("Erro: ethers.js não carregou. Verifique sua conexão com internet e recarregue a página.");
     return;
   }
-  try {
-    provider = new ethers.BrowserProvider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    signer = await provider.getSigner();
-    userAddress = await signer.getAddress();
 
-    ecoToken = new ethers.Contract(CONTRACTS.EcoToken, EcoTokenABI, signer);
-    ecoNFT = new ethers.Contract(CONTRACTS.EcoNFT, EcoNFTABI, signer);
-    ecoStaking = new ethers.Contract(CONTRACTS.EcoStaking, EcoStakingABI, signer);
+  // Verificar MetaMask
+  if (typeof window.ethereum === "undefined") {
+    alert("MetaMask não encontrada!\n\n1. Certifique que a extensão MetaMask está instalada\n2. Vá em chrome://extensions\n3. Clique em Detalhes na MetaMask\n4. Ative 'Permitir acesso a URLs de arquivo'\n5. Recarregue esta página");
+    return;
+  }
+
+  const btn = document.getElementById("connect-btn");
+  btn.textContent = "Conectando...";
+  btn.disabled = true;
+
+  try {
+    // Forçar pedido de contas diretamente pelo ethereum
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts"
+    });
+
+    if (!accounts || accounts.length === 0) {
+      throw new Error("Nenhuma conta autorizada.");
+    }
+
+    userAddress = accounts[0];
+
+    // Verificar rede — deve ser Sepolia (11155111)
+    const chainId = await window.ethereum.request({ method: "eth_chainId" });
+    const chainIdDecimal = parseInt(chainId, 16);
+
+    if (chainIdDecimal !== 11155111) {
+      // Tentar trocar para Sepolia automaticamente
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0xaa36a7" }], // Sepolia
+        });
+      } catch (switchErr) {
+        log(`Atenção: você não está na Sepolia (Chain ID: ${chainIdDecimal}). Troque para Sepolia na MetaMask.`, "error");
+      }
+    }
+
+    // Criar provider e signer com ethers
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+
+    // Instanciar contratos
+    ecoToken      = new ethers.Contract(CONTRACTS.EcoToken,      EcoTokenABI,      signer);
+    ecoNFT        = new ethers.Contract(CONTRACTS.EcoNFT,        EcoNFTABI,        signer);
+    ecoStaking    = new ethers.Contract(CONTRACTS.EcoStaking,    EcoStakingABI,    signer);
     ecoGovernance = new ethers.Contract(CONTRACTS.EcoGovernance, EcoGovernanceABI, signer);
 
+    // Atualizar UI
     document.getElementById("connect-btn").classList.add("hidden");
     document.getElementById("wallet-info").classList.remove("hidden");
 
     const short = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
     document.getElementById("wallet-address").textContent = short;
 
-    log(`Wallet connected: ${short}`, "success");
+    log(`✓ Wallet conectada: ${short}`, "success");
+    log(`✓ Chain ID: ${chainIdDecimal} (${chainIdDecimal === 11155111 ? "Sepolia ✓" : "ATENÇÃO: troque para Sepolia"})`, "success");
+
     await refreshAll();
 
-    // Subscribe to new blocks
-    provider.on("block", async (bn) => {
-      document.getElementById("block-number").textContent = `Block #${bn}`;
+    // Escutar mudança de conta
+    window.ethereum.on("accountsChanged", (accs) => {
+      if (accs.length === 0) location.reload();
+      else { userAddress = accs[0]; location.reload(); }
     });
+
+    // Escutar novos blocos
+    provider.on("block", async (bn) => {
+      const el = document.getElementById("block-number");
+      if (el) el.textContent = `Block #${bn}`;
+    });
+
   } catch (err) {
-    log(`Connection error: ${err.message}`, "error");
+    btn.textContent = "🔗 Connect Wallet";
+    btn.disabled = false;
+    if (err.code === 4001) {
+      log("Conexão recusada pelo usuário na MetaMask.", "error");
+    } else {
+      log(`Erro de conexão: ${err.message}`, "error");
+    }
   }
 }
 
